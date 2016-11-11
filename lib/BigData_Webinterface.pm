@@ -1,8 +1,11 @@
 package BigData_Webinterface;
 use Moose;
 use namespace::autoclean;
-
+use File::Spec;
 use Catalyst::Runtime 5.80;
+
+use FindBin;
+my $plugin_path = "$FindBin::Bin";
 
 # Set flags and add plugins for the application.
 #
@@ -18,6 +21,10 @@ use Catalyst::Runtime 5.80;
 
 use Catalyst qw/
     -Debug
+    Static::Simple
+    Session
+    Session::State::Cookie
+    Session::Store::FastMmap
     ConfigLoader
     Static::Simple
 /;
@@ -35,7 +42,11 @@ our $VERSION = '0.01';
 # with an external configuration file acting as an override for
 # local deployment.
 
+my @curdir = File::Spec->splitdir($plugin_path);
+pop(@curdir);
+
 __PACKAGE__->config(
+	root => join("/", @curdir, 'root/' ),
     name => 'BigData_Webinterface',
     # Disable deprecated behavior needed by old applications
     disable_component_resolution_regex_fallback => 1,
@@ -44,6 +55,63 @@ __PACKAGE__->config(
 
 # Start the application
 __PACKAGE__->setup();
+
+
+
+
+sub session_path {
+	my ($self, $session_id ) = @_;
+	if ( defined $session_id ){
+		return $self->config->{'root'}. "tmp/" . $session_id ."/";
+	}
+	my $path = $self->session->{'path'};
+	
+	if (defined $path){
+		return $path if ( $path =~ m!/tmp/[\w\d]! && -d $path );
+	}
+	my $Root = '';
+	$Root = $self->config->{'root'};
+
+	#	my $root = "/var/www/html/HTPCR";
+	$session_id = $self->get_session_id();
+	unless ( $session_id = "[w\\d]" ) {
+		$self->res->redirect( $self->uri_for("/") );
+		$self->detach();
+	}
+	$path = $Root . "tmp/" . $self->get_session_id() . "/";
+	$path = $Root . "tmp/" . $self->get_session_id() . "/" if ($path =~ m!//$! );
+	unless ( -d $path ) {
+		mkdir($path)
+		  or Carp::confess("I could not create the session path $path\n$!\n");
+		mkdir( $path . "libs/" );
+		system( "cp $Root/R_lib/Tool* $path" . "libs/" );
+		system( "cp $Root/R_lib/densityWebGL.html $path" . "libs/" );
+		mkdir( $path . "libs/beanplot_mod/" );
+		system( "cp $Root/R_lib/beanplot_mod/*.R $path" . "libs/beanplot_mod/" );
+		Carp::confess(
+			"cp $Root/R_lib/Tool* $path" . "libs/\n did not work: $!\n" )
+		  unless ( -f $path . "libs/Tool_Pipe.R" );
+	}
+	$self->session->{'path'} = $path;
+	return $path;
+}
+
+sub scrapbook {
+	my ( $self ) = @_;
+	return $self->session->{'path'}."/Scrapbook/Scrapbook.html" ;
+}
+
+
+sub cookie_check{
+	my ( $self ) = @_;
+	return 1 if ( $self->session->{'known'} == 1);
+	unless ( defined $self->session->{'known'} ){
+		$self->session->{'known'} = 0;
+	}elsif ( $self->session->{'known'} == 0 ){
+		$self->session->{'known'} = 1;
+	}
+	return 1;
+}
 
 =encoding utf8
 

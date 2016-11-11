@@ -3,7 +3,7 @@ package BigData_Webinterface::Controller::Administration;
 use strict;
 use warnings;
 use BigData_Webinterface::base_db_controler;
-use base 'Genexpress_catalist::base_db_controler';
+use base 'BigData_Webinterface::base_db_controler';
 
 =head1 NAME
 

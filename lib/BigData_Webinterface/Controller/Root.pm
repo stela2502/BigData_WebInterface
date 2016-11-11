@@ -31,8 +31,28 @@ The root page (/)
 sub index :Path :Args(0) {
     my ( $self, $c ) = @_;
 
+	my $path = $c->config->{'root'} . "/tmp/";
+	$c->model('Menu')->Reinit();
+
+	unless ( defined $c->session->{'known'} ) {
+		$c->session->{'known'} = 0;
+	}
+	elsif ( $c->session->{'known'} == 0 ) {
+		$c->session->{'known'} = 1;
+	}
+
+   #Carp::confess( "find ".$path." -maxdepth 1 -mtime +1 -exec rm -Rf {} \\;" );
+   #system( "find " . $path . " -maxdepth 1 -mtime +1 -exec rm -Rf {} \\;" );
+	$c->stash->{'news'} = [
+		'2016 11 11:', "The development of the BigData Webinterface has started. Aim - to create a server similar to SCExV, but with a constant link to the R.",
+	];
+
+	## this position can be used to upload the files!
+	$c->stash->{'uploadPage'} = $c->uri_for("/files/upload/");
+	$c->stash->{'template'}   = 'start.tt2';
+	
     # Hello World
-    $c->response->body( $c->welcome_message );
+ #   $c->response->body( $c->welcome_message );
 }
 
 =head2 default

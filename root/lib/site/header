@@ -1,4 +1,20 @@
 <!-- BEGIN site/header -->
-<!-- <h1 class="title"><a href="[%c.uri_for('/') %]">[% template.title or site.title %]</a></h1> -->
-
+<table border="0">
+  <tr>
+	<th> 
+	<a href="[% c.uri_for('/') %]"><IMG SRC="[% c.uri_for('/static/images/logo.png') %]" HEIGHT=80 /></a>
+	</th>
+	<th>
+	<h1 class="title">[% template.title or site.title %]</h1>
+	<div id="userinfo">
+	   [% IF c.user %]
+	     Logged in as [% c.user %]  
+	   <a href="[% c.uri_for('/logout') %]">Log out</a>
+	   [% ELSE %]
+	   Not logged in - <a href="[% c.uri_for('/login') %]">Log in</a>
+	   [% END %]
+	</div>
+	</th>
+  </tr>
+</table>
 <!-- END site/header -->

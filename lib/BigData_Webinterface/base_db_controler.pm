@@ -26,6 +26,7 @@ If the $REQUIRED_ROLE is an array of roles, any of the roles is sufficient to ac
 
 sub __check_user {
 	my ( $self, $c, $REQUIRED_ROLE, $return_0 ) = @_;
+	$c ->cookie_check();
 	unless ( $c->user =~ m/\w/ ) {
 		$c->res->redirect('/access_denied');
 		$c->detach();
@@ -335,14 +336,14 @@ sub DateTime {
 
 sub finalize {
 	my ( $self, $c, $name ) = @_;
-	if ( defined $name ) {
-		$c->stash->{'sidebar'} =
-		  $c->model('LinkList')->GetSidbar_4( $name, $c->user , $c );
-	}
-	else {
-		$c->stash->{'sidebar'} =
-		  $c->model('LinkList')->GetSidbar_4( ref($self), $c->user , $c );
-	}
+#	if ( defined $name ) {
+#		$c->stash->{'sidebar'} =
+#		  $c->model('LinkList')->GetSidbar_4( $name, $c->user , $c );
+#	}
+#	else {
+#		$c->stash->{'sidebar'} =
+#		  $c->model('LinkList')->GetSidbar_4( ref($self), $c->user , $c );
+#	}
 	return 1;
 }
 

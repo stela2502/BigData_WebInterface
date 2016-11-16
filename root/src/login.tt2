@@ -1,0 +1,39 @@
+[% META title="Log in" %]
+
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+	"http://www.w3c.ord/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns=" http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+      <title>Form  [% title | html %]</title>
+  </head>
+
+<body>
+
+[% form.render %]
+
+</body>
+
+[%IF error %]
+  <p><span class="error">[% error | html %]</span></p>
+[% END %]
+[% IF message %]
+  <p><span class="message"> [% message | html %]</span></p>
+[% END %]
+
+[% IF news.size > 0 %]
+<hr>
+
+<p>We have some news concerning this web page!</p>
+
+[% FOREACH data IN news %]
+	<p>[% data.date %]</p>
+	[% array = data.notes %]
+	
+	[% FOREACH note IN array %]
+		<h3>[% note.title %]</h3>
+		<p>[% note.text %]</p>
+	[% END %]
+[% END %]
+
+[% END %]

@@ -163,8 +163,8 @@ sub Admin_User_Interface : Local {
 	my ( $self, $c, @args ) = @_;
 	$self->__check_user( $c, 'admin' );
 
-	$c->stash->{'sidebar'} =
-	  $c->model('LinkList')->GetSidbar_4( ref($self), $c->user, $c );
+#	$c->stash->{'sidebar'} =
+#	  $c->model('LinkList')->GetSidbar_4( ref($self), $c->user, $c );
 	my $data_table      = $c->model("ACL")->Get_As_User_Table();
 	my $username_column = $data_table->Header_Position('usernamr');
 	for ( my $i = 0 ; $i < @{ $data_table->{'data'} } ; $i++ ) {
@@ -194,10 +194,6 @@ sub ModifyUser : Local : Form {
 
 	$self->__check_user($c);
 
-	#unless ( $c->user ) {
-	#	$c->res->redirect( $c->uri_for('/access_denied') );
-	#	$c->detach();
-	#}
 	my $username = $c->user;
 	my $admin    = 0;
 	if ( $c->model("ACL")->user_has_role( $c->user, 'admin' ) ) {
@@ -208,13 +204,11 @@ sub ModifyUser : Local : Form {
 	else {
 		$self->{'do_not_add_lists'} = 1;
 	}
-	$c->stash->{'sidebar'} =
-	  $c->model('LinkList')->GetSidbar_4( ref($self), $c->user, $c );
-	##Carp::confess ( "Do I get a id for username $username? (".$c->model("ACL")->Get_id_for_name($username).")\n");
 	my $model =
 	  $c->model("ACL")
 	  ->get_as_object( $c->model("ACL")->Get_id_for_name($username) );
 	$self->{'form_array'} = [ $model->get_formdef_array() ];
+	
 	unless ($admin) {
 		foreach ( @{ $self->{'form_array'} } ) {
 			if ( $_->{'name'} eq "action_gr_id" ) {
@@ -250,16 +244,16 @@ sub ModifyUser : Local : Form {
 	  "You can update the information on scientists here <BR>\n";
 
 	$c->stash->{'template'} = 'LabBook.tt2';
-
-	#Carp::confess("FIX ME!!!");
 }
+
+
 
 sub Registration : Local : Form {
 	my ( $self, $c, $security_tocken ) = @_;
 	$c->stash->{'function'} = 'Register new user';
 	$c->stash->{'template'} = 'Registration.tt2';
-	$c->stash->{'sidebar'}  =
-	  $c->model('LinkList')->GetSidbar_4( 'root', '', $c );
+#	$c->stash->{'sidebar'}  =
+#	  $c->model('LinkList')->GetSidbar_4( 'root', '', $c );
 	if ( defined $security_tocken ) {
 		my $temp =
 		  stefans_libs::database::scienstTable::temporary_banned->new(

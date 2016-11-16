@@ -28,8 +28,8 @@ it under the same terms as Perl itself.
 
 
 sub new {
-	my ( $app, @arguments ) = @_;
-	return stefans_libs::RInterface->new();
+	my ( $app, $c, $hash) = @_;
+	return stefans_libs::RInterface->new($hash);
 }
 
 __PACKAGE__->meta->make_immutable ( inline_constructor => 0 );

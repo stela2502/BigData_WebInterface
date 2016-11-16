@@ -1,0 +1,19 @@
+[% META title = 'Catalyst/TT Error' %]
+<p>
+  An error has occurred.  We're terribly sorry about that, but it's
+  one of those things that happens from time to time.
+</p>
+<p>
+  Here's the error message, I hope it means something
+  to you: <span class="error">[% error %]</span>
+</p>
+[% IF message %]
+<p>
+  And here comes a specific message the developer wanted you to see:<BR>
+  [% message %]
+</p>
+[% END %]
+
+[%IF href %]
+  <p> Perhaps you want to go <a href="[% c.uri_for(href) %]">'there'</a>? </p>
+[% END %]

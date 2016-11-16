@@ -1,0 +1,35 @@
+
+
+[% IF To_Do_List %]
+
+<h3> Sorry, but you have not finished these to_do items in time:</h3>
+
+[% FOREACH hash IN To_Do_List %]
+	<p>
+	[% IF hash.project_name %]
+	([% hash.project_name %]): 
+	[% END %]
+	<font color=[% site.rgb.red %]>
+	[% hash.info %]
+	</font>
+	(<a href="[% c.uri_for( hash.to_do_id ) %]">click to finalize</a>)
+	</p>
+[% END %]
+[% END %]
+
+[% IF not_pressing_To_Do_List %]
+
+<h3> These things are still waiting for you:</h3>
+
+[% FOREACH hash IN not_pressing_To_Do_List %]
+	<p>
+	[% IF hash.project_name %]
+	([% hash.project_name %]): 
+	[% END %]
+	<font color=[% site.rgb.deep_blue %]>
+	[% hash.info %]
+	</font>
+	(<a href="[% c.uri_for( hash.to_do_id ) %]">click to finalize</a>)
+	</p>
+[% END %]
+[% END %]

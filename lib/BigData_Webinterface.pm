@@ -3,6 +3,9 @@ use Moose;
 use namespace::autoclean;
 use File::Spec;
 use Catalyst::Runtime 5.80;
+use stefans_libs::database::variable_table;
+use DBI;
+use Shell;
 
 use FindBin;
 my $plugin_path = "$FindBin::Bin";
@@ -27,6 +30,7 @@ use Catalyst qw/
     Session::Store::FastMmap
     ConfigLoader
     Static::Simple
+    FormBuilder
 /;
 
 extends 'Catalyst';
@@ -45,12 +49,24 @@ our $VERSION = '0.01';
 my @curdir = File::Spec->splitdir($plugin_path);
 pop(@curdir);
 
+my $dbh = variable_table->getDBH();
+
 __PACKAGE__->config(
+	{
+		'Model::ACL' => {'dbh' => $dbh },
+		'Model::Action_Groups' => {'dbh' => $dbh } ,
+		'Model::Project' => {'dbh' => $dbh },
 	root => join("/", @curdir, 'root/' ),
     name => 'BigData_Webinterface',
+    deployed => 1,
     # Disable deprecated behavior needed by old applications
     disable_component_resolution_regex_fallback => 1,
     enable_catalyst_header => 1, # Send X-Catalyst header
+    'require_ssl' => {
+			remain_in_ssl => 0,
+			no_cache      => 0,
+		},
+	}
 );
 
 # Start the application
@@ -112,6 +128,34 @@ sub cookie_check{
 	}
 	return 1;
 }
+
+sub _hash_pw {
+	my ( $self, $username, $passwd ) = @_;
+	return $self->model('ACL')->_hash_pw($username, $passwd);
+}
+
+sub authenticate {
+	my ( $self, $username, $passwd ) = @_;
+	$self->model('ACL')->check_pw( $self, $username, $self->_hash_pw($username, $passwd) );
+	return 1;
+}
+
+sub user {
+	my ( $self, $user ) = @_;
+	$self->{'user'} = $user if ( defined $user );
+	unless ( defined $self->{'user'} ) {
+		$self->{'user'} = $self->session->{'user'};
+	}
+	return $self->{'user'};
+}
+
+sub logout {
+	my ($self) = @_;
+	$self->session->{'user'} = undef;
+	$self->{'user'} = undef;
+	return 1;
+}
+
 
 =encoding utf8
 

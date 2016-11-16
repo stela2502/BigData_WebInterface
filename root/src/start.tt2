@@ -22,21 +22,26 @@
 
 </td><td id='tab4050'>
 
-<h1> Welcome to the Single Cell Expression Visualiser.</h1>
+<h1> Welcome to the developmental version of the BigData Webinterface.</h1>
 
 <h3>Supported browsers: </br>
 SCExV uses WebGL which is supported by Firefox and Chrome, less so by Internet Explorer,
 and not at all by Safari. We therefore recommend that you use Firefox or Chrome to get the full visualisaton capabilities of SCExV.
 </h3>
-<p>SCExV is separated into two modules:
+
+<p>The web interface is separated into two (three) modules:
 <ol type="A">
 <li><a href="[% c.uri_for( '/files/upload/' ) %]">File upload</a> or 
 <a href="[% c.uri_for( '/files/start_from_zip_file/' ) %]">upload a (recently) saved zip file</a>
 </li>
 
 <li>Analysis</li>
+
+<li><a href="[% c.uri_for( '/administration/index/' ) %]">Administration</a> (requires login)</li>
 </ol>
 </p>
+
+
 
 <p>Supported files: </p><p>
 

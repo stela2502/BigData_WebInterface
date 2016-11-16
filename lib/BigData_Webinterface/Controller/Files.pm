@@ -72,14 +72,6 @@ sub use_example_data : Local : Form {
 	$c->detach();
 }
 
-sub renew_rlib : Local {
-	my ( $self, $c, @args ) = @_;
-	my $path = $c->session_path();
-	my $root = $c->config->{'root'};
-	system( "cp $root/R_lib/Tool* $path" . "libs/" );
-	$c->res->redirect( $c->uri_for("/analyse/re_run/") );
-	$c->detach();
-}
 
 sub download_example_data : Local : Form {
 	my ( $self, $c, @args ) = @_;

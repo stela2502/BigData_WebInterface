@@ -98,7 +98,7 @@ sub login : Local: Form : Does('NoSSL')  {
 		)
 	  )
 	{
-		$c->session->{'port'} =  $c->model('Rinterface') -> port_4_user( $c->session->{'user'} );
+		#$c->session->{'port'} =  $c->model('Rinterface') -> port_4_user( $c->session->{'user'} );
 		$c->stash->{'message'} = 'Logged in successfully.';
 
 		#Carp::confess ( "I have the user ".$c->user."\n");
@@ -109,16 +109,20 @@ sub login : Local: Form : Does('NoSSL')  {
 	$c->detach();
 }
 
+sub access_denied : Global {
+	my ( $self, $c, @message ) = @_;
+	$c->stash->{'message'} = join( "/", @message );
+	$c->stash->{'template'} = 'denied.tt2';
+}
+
 sub logout : Local {
 	my ( $self, $c ) = @_;
-	$c->model('Rinterface')->shut_down_server ( $c->session->{'port'} );
+	map { $c->model('Rinterface')->shut_down_server ( $_->{'R'} ) } values %{$c->session->{'active_projects'}};
 	
 	foreach ( keys %{ $c->session() } ) {
 		$c->session->{$_} = undef;
 	}
-
-#	$c->model('Mail_System')->log_out( $c->user() )
-#	  if ( defined $c->model('Mail_System') );
+	
 	$c->logout();
 	$c->flash->{'message'} = 'Logged out.';
 	$c->res->redirect( $c->uri_for() );
@@ -137,7 +141,13 @@ sub default :Path {
 }
 
 
-sub cookiecheck: Path {
+sub terms_and_conditions : Local : Form {
+	my ( $self, $c ) = @_;
+	$c->stash->{'function'} = 'Terms and Conditions';
+	$c->stash->{'template'} = 'terms_and_conditions.tt2';
+}
+
+sub cookiecheck: Local {
 	my ( $self, $c ) = @_;
     $c->response->body( "<p>".root->print_perl_var_def( $c->session())."</p><p>".root->print_perl_var_def( $c->user() )."</p>" );
     $c->response->status(404);

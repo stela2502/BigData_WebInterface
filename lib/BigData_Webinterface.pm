@@ -5,7 +5,7 @@ use File::Spec;
 use Catalyst::Runtime 5.80;
 use stefans_libs::database::variable_table;
 use DBI;
-use Shell;
+#use Shell;
 
 use FindBin;
 my $plugin_path = "$FindBin::Bin";
@@ -55,10 +55,11 @@ __PACKAGE__->config(
 	{
 		'Model::ACL' => {'dbh' => $dbh },
 		'Model::Action_Groups' => {'dbh' => $dbh } ,
-		'Model::Project' => {'dbh' => $dbh },
+		'Model::Project' => {'dbh' => $dbh,  },
+		'Model::Rinterface' => { 'path' => join("/", @curdir, 'root/' )."tmp/"},
 	root => join("/", @curdir, 'root/' ),
     name => 'BigData_Webinterface',
-    deployed => 1,
+ #   deployed => 1,
     # Disable deprecated behavior needed by old applications
     disable_component_resolution_regex_fallback => 1,
     enable_catalyst_header => 1, # Send X-Catalyst header
@@ -94,19 +95,11 @@ sub session_path {
 		$self->res->redirect( $self->uri_for("/") );
 		$self->detach();
 	}
-	$path = $Root . "tmp/" . $self->get_session_id() . "/";
-	$path = $Root . "tmp/" . $self->get_session_id() . "/" if ($path =~ m!//$! );
+	$path = $Root . "tmp/";# . $self->get_session_id() . "/";
+	#$path = $Root . "tmp/" . $self->get_session_id() . "/" if ($path =~ m!//$! );
 	unless ( -d $path ) {
 		mkdir($path)
 		  or Carp::confess("I could not create the session path $path\n$!\n");
-		mkdir( $path . "libs/" );
-		system( "cp $Root/R_lib/Tool* $path" . "libs/" );
-		system( "cp $Root/R_lib/densityWebGL.html $path" . "libs/" );
-		mkdir( $path . "libs/beanplot_mod/" );
-		system( "cp $Root/R_lib/beanplot_mod/*.R $path" . "libs/beanplot_mod/" );
-		Carp::confess(
-			"cp $Root/R_lib/Tool* $path" . "libs/\n did not work: $!\n" )
-		  unless ( -f $path . "libs/Tool_Pipe.R" );
 	}
 	$self->session->{'path'} = $path;
 	return $path;

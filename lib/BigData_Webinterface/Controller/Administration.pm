@@ -186,7 +186,7 @@ sub Admin_User_Interface : Local {
 	];
 	$c->stash->{'title'}    = "Select the scientist you want to modify";
 	$c->stash->{'text'}     = $data_table->GetAsHTML();
-	$c->stash->{'template'} = 'LabBook.tt2';
+	$c->stash->{'template'} = 'Projects.tt2';
 }
 
 sub ModifyUser : Local : Form {
@@ -243,7 +243,7 @@ sub ModifyUser : Local : Form {
 	$c->stash->{'text'}  =
 	  "You can update the information on scientists here <BR>\n";
 
-	$c->stash->{'template'} = 'LabBook.tt2';
+	$c->stash->{'template'} = 'Projects.tt2';
 }
 
 
@@ -501,7 +501,7 @@ sub Set_Start_Page : Local : Form {
 		$c->detach();
 	}
 
-	$c->stash->{'template'} = 'LabBook.tt2';
+	$c->stash->{'template'} = 'Projects.tt2';
 }
 
 sub Change_go_there : Local : Form {
@@ -529,7 +529,7 @@ sub Change_go_there : Local : Form {
 	$c->stash->{'title'} = "Add a link to the go there section";
 	$c->stash->{'text'}  =
 "Please consider, that you can not delete one of these links later on!<BR>\n";
-	$c->stash->{'template'} = 'LabBook.tt2';
+	$c->stash->{'template'} = 'Projects.tt2';
 }
 
 sub AddUser : Local : Form {

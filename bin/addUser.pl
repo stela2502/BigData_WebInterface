@@ -136,9 +136,11 @@ my $id = $ACL->AddDataset(
 		workgroup     => $workgroup,
 		position      => $position,
 		email         => $email,
-		action_groups => [ map { { 'rolename' => $_ } } @roles ]
 	}
 );
+
+map {$ACL->AddRole( { 'username' => $username, 'role' => $_ })} @roles;
+
 
 ( $pw ) = $ACL->_hash_pw($username,$pw);
 

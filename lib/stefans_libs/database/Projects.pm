@@ -90,9 +90,18 @@ sub  init_tableStructure {
                'link_to'      => 'id',
           }
      );
+     push ( @{$hash->{'variables'}},  {
+               'name'         => 'md5_sum',
+               'name'        => 'md5_sum',
+               'type'        => 'VARCHAR (32)',
+               'NULL'        => '1',
+               'description' => '',
+          }
+     );
 
      $self->{'table_definition'} = $hash;
-     $self->{'UNIQUE_KEY'} = ['name'];
+     $self->{'UNIQUE_KEY'} = ['name'] ;
+	 $self->{'Group_to_MD5_hash'} = ['description'];
 	
      $self->{'table_definition'} = $hash;
 
@@ -145,9 +154,10 @@ sub get_project_name_4_id {
 
 sub user_has_access {
 	my ( $self, $projectName, $username ) = @_;
-	my $t = get_data_table_4_search( {
-	   	'search_columns' => ['id'],
-	   	'where' => [ [ref($self).'.name', '=', 'my_value'], [ref($self->{'data_handler'}->{'scientistTable'}).'.username', '=', 'my_value'] ],
+	my $add= ref($self).'.';
+	my $t = $self->get_data_table_4_search( {
+	   	'search_columns' => [$add.'id'],
+	   	'where' => [ [$add.'name', '=', 'my_value'], [ref($self->{'data_handler'}->{'scientistTable'}).'.username', '=', 'my_value'] ],
 	   },$projectName, $username );
 	return $t->Rows();
 }

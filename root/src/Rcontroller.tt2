@@ -1,0 +1,37 @@
+<td id='tab20100', valign='top'>
+
+</div>
+<div id="sidebar">
+
+<p> here we will soon see a lot of outfiles...</p>
+
+</div>
+
+[% FOREACH name IN formNames %]
+<p>[% name %]</p>
+[% END %]
+
+<div id='message'> [% message | html %] </div>
+
+
+</td><td id='tab4050'>
+
+<table><tr><td>
+<h3>The R script area:</h3>
+[% form.render %]
+</td></tr><tr><td>
+
+<textarea rows="120" cols="50" readonly>
+
+[% logfile %]
+
+</textarea>
+
+</table>
+
+</td><td id='tab20100'>
+
+<p>Here I will present javascript applets that allow a simple submission of R function calls.
+In the future...</p>
+</td>
+

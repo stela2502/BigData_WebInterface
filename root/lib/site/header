@@ -1,5 +1,5 @@
 <!-- BEGIN site/header -->
-<table border="0">
+<table border="0" width = 100%>
   <tr>
 	<th> 
 	<a href="[% c.uri_for('/') %]"><IMG SRC="[% c.uri_for('/static/images/logo.png') %]" HEIGHT=80 /></a>
@@ -15,6 +15,13 @@
 	   [% END %]
 	</div>
 	</th>
+	<th valign="middle">[% PROCESS site/Menu %]</th>
+	<th align="right"> <button ondrop='processFigure(event)' ondragover='allowDrop(event)' onclick='window.open("[%c.uri_for('/scrapbook/textadd/') %]", "ScrapBook" )' > <b>Scrapbook</b> </button> 
+    <a href="#" onClick="MyWindow=window.open('[%c.uri_for('/help/index/scrapbook/link/button/')%]' ,'MyWindow',
+ 'width=500,heig‌​ht=500'); return false;" id="analyse" name="analyse">
+	<img style="border:0px;" src="/static/images/Questions.gif"/; width =20px; ></a>
+<!-- Logo created using the free font STORM designed by Dieter Schumacher ©1998 -->
+</th>
   </tr>
 </table>
 <!-- END site/header -->

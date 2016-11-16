@@ -49,17 +49,29 @@ sub register_project {
 	my ( $self, $c, $hash ) = @_;
 	my $projectName;
 	unless ( defined $hash->{'name'} ) {
-		my $id = $self->{'projects'}->AddDataset({
-			'description' => $hash->{'description'},
-			'owner' => $c->model('ACL')->Get_id_for_name( $c->user() ),
-			}
-		);
-		$projectName = $self->{'projects'}->get_project_name_4_id( $id );
+		$self->{'projects'}->_create_md5_hash ($hash );
+		#Carp::confess ( "is there a md5_sum?? \$exp = " . root->print_perl_var_def( $hash ) . ";\n" );
+		my $id =  $self->{'projects'}-> _select_all_for_DATAFIELD ( $hash->{'md5_sum'} , 'md5_sum' );
+		if ( @$id){
+			#Carp::confess ( "is there a md5_sum?? \$exp = " . root->print_perl_var_def( $id ) . ";\n");
+			$projectName = @$id[0]->{'name'};
+			$id = @$id[0]->{'id'};
+			
+		}
+		else {
+			$id = $self->{'projects'}->AddDataset({
+				'description' => $hash->{'description'},
+				'owner' => $c->model('ACL')->Get_id_for_name( $c->user() ),
+				});
+				$projectName = $self->{'projects'}->get_project_name_4_id( $id );
+		}
+		
 	}else {
 		if ( $self->{'projects'}->user_has_access($hash->{'name'}, $c->user() ) ){
 			$projectName = $hash->{'name'};
 		}
 	}
+	return $self if ( $c->session->{'active_projects'} ->{$projectName} );
 	$self->{active}->{$c->user()} ||= {};
 	my $server = 
 		  "logfile <- '".$self->path( $c, $projectName)."scripts/".$c->user()."_automatic_commands.R'\n"
@@ -86,6 +98,8 @@ sub register_project {
 	$c->session->{'active_projects'} ->{$projectName} = { 
 		'path' => $self->path( $c, $projectName), 
 		'R' => $self->{active}->{$c->user()}->{$projectName},
+		'logfile' => $self->path( $c, $projectName)."scripts/".$c->user()."_automatic_commands.R",
+		'outpath' => $self->path( $c, $projectName).'output/',
 	};
 	
 	return $self;
@@ -95,7 +109,15 @@ sub send_2_R {
 	my ( $self, $c, $projectName, $cmd ) =@_;
 	my $op = $self->path( $c, $projectName)."outpath/";
 	$cmd =~ s/##OUTPATH##/$op/g;
-	$c->model('Rinterface') ->send_2_R($cmd, $self->{active}->{$c->user()}->{$projectName} );
+	#$cmd =~ s/"/\\"/g;
+	my $port = $self->{active}->{$c->user()}->{$projectName};
+	unless ( defined $port ) {
+		## wow a server crash or why is the R asked for, but not in our datasets?
+		$self->register_project( $c, {'name' => $projectName} );
+		$port = $self->{active}->{$c->user()}->{$projectName};
+	}
+	$c->model('Rinterface') -> spawn_R ($port) unless ( $c->model('Rinterface') -> is_running($port));
+	$c->model('Rinterface') ->send_2_R($cmd, $port );
 	return $self;
 }
 

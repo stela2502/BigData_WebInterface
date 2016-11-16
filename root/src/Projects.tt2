@@ -1,0 +1,35 @@
+<td id='tab20100', valign='top'>
+
+</div>
+<div id="sidebar">
+
+[% form.render %]
+
+</div>
+
+[% FOREACH name IN formNames %]
+<p>[% name %]</p>
+[% END %]
+
+<div id='message'> [% message | html %] </div>
+
+
+</td><td id='tab4050'>
+
+	[% IF title %]
+	<h3> [% title %] </h3>
+	[% END %]
+	
+
+	[% IF text %]
+		<p> [% text %] </p>
+	[% END %]
+   
+    [% FormBuilder.render %]
+
+</table>
+
+</td><td id='tab20100'>
+
+</td>
+

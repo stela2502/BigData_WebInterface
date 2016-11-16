@@ -4,6 +4,7 @@ use Test::More;
 
 BEGIN { use_ok 'BigData_Webinterface::Model::Project' }
 use BigData_Webinterface::Model::ACL;
+use FindBin;
 
 ## here I need to check the data structures that can be shown to the user and the function to create and manipulate data.
 
@@ -14,7 +15,7 @@ my $c = test::c->new();
 system( 'rm -Rf ' . "$FindBin::Bin" . "/data/Output/Project/*" );
 
 ok( $c->model('Rinterface')->{'path'} eq $c->session_path(),
-	"Rinterface path is set right" );
+	"Rinterface path is set right '".$c->model('Rinterface')->{'path'}."' != '".$c->session_path()."'" );
 
 my $OBJ =
   BigData_Webinterface::Model::Project->new( 'BigData_Webinterface',
@@ -230,9 +231,9 @@ push( @$exp,
 	"[1] \"I can capture the R output messages\"",
 	"q('yes')",
 	"> proc.time()",
-	"   user  system elapsed "
 	 );
 pop( @$value); ## get rid of the variable proc time line "  0.208   0.016  11.242 " 
+pop( @$value); ## and get rid of the '   user  system elapsed ' as this is language specififc and therefore prone to error.
 is_deeply( $value, $exp,
 	"The automatic log file contents after server is shut down" );
 
@@ -282,7 +283,8 @@ sub session_path {
 	return $self->{'p'} if ( defined $self->{'p'} );
 	$self->{'p'} = "$FindBin::Bin" . "/data/Output/Project/";
 	unless ( -d $self->{'p'} ) {
-		mkdir( $self->{'p'} );
+		system( "mkdir -p $self->{'p'}");
+		#mkdir( $self->{'p'} );
 	}
 
 	return $self->{'p'};

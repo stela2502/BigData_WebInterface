@@ -1,0 +1,16 @@
+<div id="body_with_sidebar">
+
+<p>Sorry - this has not been fully implemented yet!</p>
+
+<p>But for common sense I define the Terms and Conditions like that:
+<p>You use the software at own risk and even as we do our best to make it work perfectly well, data loss and other errors can happen.<BR>
+All data you analyze here must not be under specific protection like e.g. human NGS data).
+The system does not restrict access to the data and has not been developed with data security as a main priority.
+If you want to run the software in a specifically hardened environment please install it yourself.
+The source can be found at <a href="https://github.com/stela2502/BigData_WebInterface" target='_blank'>github.com</a>.</p>
+
+<p>YOU as user need to take responsibility for your data, but we will not use the data to publish articles.</p>
+
+<p>You as user need to apply to the rule, that you will never use data from any other user without asking him/her for permission. </p>
+
+</div>

@@ -1,1 +1,8 @@
 /blib/*
+/blib/
+*.RData
+*.R
+*.Rout
+Makefile
+*.png
+t/data/Output/*

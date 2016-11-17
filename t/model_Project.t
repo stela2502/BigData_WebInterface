@@ -14,6 +14,7 @@ my $c = test::c->new();
 
 system( 'rm -Rf ' . "$FindBin::Bin" . "/data/Output/Project/*" );
 
+ok ( ! -d "$FindBin::Bin" . "/data/Output/ProjectLUNBIO00000000000001", 'the project path does not exist - good!');
 ok( $c->model('Rinterface')->{'path'} eq $c->session_path(),
 	"Rinterface path is set right '".$c->model('Rinterface')->{'path'}."' != '".$c->session_path()."'" );
 
@@ -70,7 +71,7 @@ ok( ref($value) eq "data_table", "search was positive" );
 ok( $value > 0, "I could add a project" );
 
 $exp = [
-	sort ( 'projects.id', 'projects.name',
+	sort ( 'projects.id', 'projects.name','projects.md5_sum',
 		'projects.description',      'projects.owner',
 		'scientists.id',             'scientists.username',
 		'scientists.name',           'scientists.workgroup',
@@ -86,7 +87,7 @@ $exp = [
 ];
 
 is_deeply( [ sort( @{ $value->{'header'} } ) ],
-	$exp, "both project and ACL data is accessible" );
+	$exp, "both project and ACL data are accessible" );
 
 #print "\$exp = ".root->print_perl_var_def($value->get_line_asHash(0)).";\n";
 $exp = {
@@ -96,6 +97,7 @@ $exp = {
 	'action_groups.description'   => undef,
 	'action_groups.id'            => undef,
 	'action_groups.name'          => undef,
+	'projects.md5_sum' => '70198284474acc7b685b690963a848f7',
 	'projects.description' =>
 	  'This is a test of the projects table interface #1',
 	'projects.id'              => '1',
@@ -120,6 +122,7 @@ $exp = {
 
 is_deeply( $value->get_line_asHash(0), $exp, "right data created" );
 
+
 $OBJ->{'projects'}->create('projects');
 
 ## reinit!
@@ -127,20 +130,38 @@ $OBJ =
   BigData_Webinterface::Model::Project->new( 'BigData_Webinterface',
 	{ dbh => variable_table->getDBH() } );
 
+unlink( $c->session_path().'LUNBIO00000000000001/scripts/test-use_automatic_commands.R' ) if ( -f $c->session_path().'LUNBIO00000000000001/scripts/test-use_automatic_commands.R');
+
 $OBJ->register_project( $c,
 	{ 'description' => 'This is a test of the projects table interface #1' } );
 
 #print "\$exp = ".root->print_perl_var_def( $c->session->{'active_projects'} ).";\n";
+
 $exp = {
-	'LUNBIO00000000000001' => {
-		'R'    => '0',
-		'path' => '' . $c->session_path() . '/LUNBIO00000000000001/'
-	}
+  'LUNBIO00000000000001' => {
+  'R' => '0',
+  'logfile' =>  $c->session_path().'LUNBIO00000000000001/scripts/test-use_automatic_commands.R',
+  'outpath' =>  $c->session_path().'LUNBIO00000000000001/output/',
+  'path' =>  $c->session_path().'LUNBIO00000000000001/'
+}
 };
+
 is_deeply( $c->session->{'active_projects'},
 	$exp, "project has been added to the session" );
 
 ok( -f $c->session_path() . "server_0.R", "the server script exists" );
+
+sleep( 2 ) ; # wait untill the server has started.
+ok( -f $c->session_path()."LUNBIO00000000000001/scripts/test-use_automatic_commands.R", "the server log exists" );
+
+
+&file_2_value( $c->session_path()
+	  . 'LUNBIO00000000000001/scripts/test-use_automatic_commands.R' );
+
+#print "\$exp = " . root->print_perl_var_def($value) . ";\n";
+$exp = [ 'setwd( \''.$c->session_path().'LUNBIO00000000000001/output/\' )' ];
+
+is_deeply($value, $exp, "the server log directly after the start" );
 
 open( IN, "<" . $c->session_path() . "server_0.R" );
 $value = [ map { chomp; $_ } <IN> ];
@@ -148,9 +169,9 @@ $value = [ map { chomp; $_ } <IN> ];
 #print "\$exp = " . root->print_perl_var_def($value) . ";\n";
 
 $exp = [
-'logfile <- \''. $c->session_path().'/LUNBIO00000000000001/scripts/test-use_automatic_commands.R\'',
+'logfile <- \''. $c->session_path().'LUNBIO00000000000001/scripts/test-use_automatic_commands.R\'',
 'infile <- \''. $c->session_path().'/0.input.R\'',
-	'system( \'touch logfile\')',
+	'system( paste(\'touch\', logfile) )',
 	'server <- function(){',
 	'  while(TRUE){',
 	'        if ( file.exists(infile) ) {',
@@ -175,7 +196,7 @@ my $cmd =
 $OBJ->send_2_R( $c, 'LUNBIO00000000000001', $cmd )
   ;    ## the file will 20sec not be removed!
 
-ok( -f $c->session_path() . "0.input.R", "the server inpit file exists" );
+ok( -f $c->session_path() . "0.input.R", "the server input file exists" );
 
 open( IN, "<" . $c->session_path() . "0.input.R" )
   or die "I could not open the R input file\n";
@@ -191,24 +212,24 @@ close(IN);
 sleep(5);
 
 ok(
-	-f $c->session_path() . "/LUNBIO00000000000001/output/test.png",
+	-f $c->session_path() . "LUNBIO00000000000001/output/test.png",
 	"output figure was created '"
 	  . $c->session_path()
-	  . "/LUNBIO00000000000001/output/test.png'"
+	  . "LUNBIO00000000000001/output/test.png'"
 );
 
 ok(
 	-f $c->session_path()
-	  . '/LUNBIO00000000000001/scripts/test-use_automatic_commands.R',
+	  . 'LUNBIO00000000000001/scripts/test-use_automatic_commands.R',
 	"the automatic R log file"
 );
 
 &file_2_value( $c->session_path()
-	  . '/LUNBIO00000000000001/scripts/test-use_automatic_commands.R' );
+	  . 'LUNBIO00000000000001/scripts/test-use_automatic_commands.R' );
 
 #print "\$exp = " . root->print_perl_var_def($value) . ";\n";
 $exp = [
-	'setwd( \'' . $c->session_path() . '/LUNBIO00000000000001/output/\' )',
+	'setwd( \'' . $c->session_path() . 'LUNBIO00000000000001/output/\' )',
 	'png( file=\'test.png\', width=400, height=400)',
 	'plot(1:10,1:10)',
 	'dev.off()',
@@ -225,7 +246,7 @@ $c->model('Rinterface')->DESTROY();
 ok( !-f $c->session_path() . "0.input.R", "the R input has been removed" );
 
 &file_2_value( $c->session_path()
-	  . '/LUNBIO00000000000001/scripts/test-use_automatic_commands.R' );
+	  . 'LUNBIO00000000000001/scripts/test-use_automatic_commands.R' );
 push( @$exp,
 	"print('I can capture the R output messages')",
 	"[1] \"I can capture the R output messages\"",

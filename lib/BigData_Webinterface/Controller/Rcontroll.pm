@@ -47,7 +47,7 @@ sub index : Local : Form {
 			'comment'  => 'Script Area',
 			'name'     => 'input',
 			'type'     => 'textarea',
-			'cols'     => 100,
+			'cols'     => 120,
 			'rows'     => 30,
 			'value'    => '',
 			'required' => 1,
@@ -75,30 +75,25 @@ sub index : Local : Form {
 	opendir( DIR,
 		$c->session->{'active_projects'}->{$projectName}->{'outpath'} )
 	  or Carp::confess("I can not open the outpath");
-	$c->stash->{'outfiles'} = [ grep /^\w/, readdir(DIR) ];
+	$c->stash->{'outfiles'} =  data_table->new();
+	$c->stash->{'outfiles'} -> add_column ( 'outfiles' , grep /^\w/, readdir(DIR) );
+	$c->stash->{'outfiles'} -> HTML_modification_for_column ({'column_name' => 'outfiles', 'colsub' => 
+		sub {
+			my ( $self, $value, $this_hash, $type ) = @_;
+			if ( $type eq "td" ){
+				return "<$type><a href='".$c->uri_for("/files/index").$c->session->{'active_projects'}->{$projectName}->{'outpath'}."/$value'>$value</a></$type>";
+			}else {
+				return "<$type>$value</$type>";
+			}
+		} });
+	$c->stash->{'outfiles'} = $c->stash->{'outfiles'}->GetAsHTML();
 	closedir(DIR);
 
 	#$c->form->type('TT2');
 	#$c->form->template( $c->config->{'root'} . 'src' . '/form/analysis.tt2' );
 	$c->stash->{'template'} = 'Rcontroller.tt2';
 
-#	my $exp = {
-#		'R' => '1',
-#		'logfile' =>
-#'/home/stefan/git/BigData_WebInterface/root/tmp/1ee2cb40ce335fc4f4dd378f56f0b249d157ba15//LUNBIO00000000000001/scripts/med-sal_automatic_commands.R',
-#		'outpath' =>
-#'/home/stefan/git/BigData_WebInterface/root/tmp/1ee2cb40ce335fc4f4dd378f56f0b249d157ba15//LUNBIO00000000000001/output/',
-#		'path' =>
-#'/home/stefan/git/BigData_WebInterface/root/tmp/1ee2cb40ce335fc4f4dd378f56f0b249d157ba15//LUNBIO00000000000001/'
-#	};
-#
-#	$c->response->body(
-#		"\$exp = "
-#		  . root->print_perl_var_def(
-#			$c->session->{'active_projects'}->{$projectName}
-#		  )
-#		  . ";\n"
-#	);
+
 }
 
 =encoding utf8

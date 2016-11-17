@@ -56,7 +56,7 @@ __PACKAGE__->config(
 		'Model::ACL' => {'dbh' => $dbh },
 		'Model::Action_Groups' => {'dbh' => $dbh } ,
 		'Model::Project' => {'dbh' => $dbh,  },
-		'Model::Rinterface' => { 'path' => join("/", @curdir, 'root/' )."tmp/"},
+		'Model::Rinterface' => { 'path' => join("/", @curdir, 'root/' )."tmp"},
 	root => join("/", @curdir, 'root/' ),
     name => 'BigData_Webinterface',
  #   deployed => 1,

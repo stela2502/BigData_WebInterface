@@ -3,7 +3,9 @@
 </div>
 <div id="sidebar">
 
-<p> here we will soon see a lot of outfiles...</p>
+<p>
+[% outfiles %]
+</p>
 
 </div>
 
@@ -21,7 +23,7 @@
 [% form.render %]
 </td></tr><tr><td>
 
-<textarea rows="120" cols="50" readonly>
+<textarea rows="30" cols="120" readonly>
 
 [% logfile %]
 

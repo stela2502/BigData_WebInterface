@@ -71,12 +71,12 @@ sub register_project {
 			$projectName = $hash->{'name'};
 		}
 	}
-	return $self if ( $c->session->{'active_projects'} ->{$projectName} );
+	return $self if ( $c->session->{'active_projects'} ->{$projectName} and $c->model('Rinterface') -> is_running( $c->session->{'active_projects'} ->{$projectName}->{'R'}) );
 	$self->{active}->{$c->user()} ||= {};
 	my $server = 
 		  "logfile <- '".$self->path( $c, $projectName)."scripts/".$c->user()."_automatic_commands.R'\n"
 		  . "infile <- '##PATH##/##PORT##.input.R'\n"
-		  . "system( 'touch logfile')\n"
+		  . "system( paste('touch', logfile) )\n"
 		  . "server <- function(){\n"
 		  . "  while(TRUE){\n"
 		 . "        if ( file.exists(infile) ) {\n"
@@ -94,6 +94,7 @@ sub register_project {
 	$self->{active}->{$c->user()}->{$projectName} = $c->model('Rinterface') -> port_4_user( $c->user(), $projectName, $server );
 	
 	$c->model('Rinterface') -> send_2_R ( "setwd( '".$self->path( $c, $projectName).'output/'."' )", $self->{active}->{$c->user()}->{$projectName} );
+	
 	$c->session->{'active_projects'} ||= {};
 	$c->session->{'active_projects'} ->{$projectName} = { 
 		'path' => $self->path( $c, $projectName), 
@@ -110,23 +111,27 @@ sub send_2_R {
 	my $op = $self->path( $c, $projectName)."outpath/";
 	$cmd =~ s/##OUTPATH##/$op/g;
 	#$cmd =~ s/"/\\"/g;
-	my $port = $self->{active}->{$c->user()}->{$projectName};
+	my $port = $c->session->{'active_projects'} ->{$projectName}->{'R'};
 	unless ( defined $port ) {
 		## wow a server crash or why is the R asked for, but not in our datasets?
 		$self->register_project( $c, {'name' => $projectName} );
-		$port = $self->{active}->{$c->user()}->{$projectName};
+		$port = $c->session->{'active_projects'} ->{$projectName}->{'R'};
 	}
-	$c->model('Rinterface') -> spawn_R ($port) unless ( $c->model('Rinterface') -> is_running($port));
-	$c->model('Rinterface') ->send_2_R($cmd, $port );
+	unless ( $c->model('Rinterface') -> is_running($port)){
+		$c->model('Rinterface') -> spawn_R ($port);
+		$c->model('Rinterface') -> send_2_R ( "setwd( '$op' )", $port );
+	}
+	
+	$c->model('Rinterface') -> send_2_R($cmd, $port );
 	return $self;
 }
 
 sub path {
 	my ( $self, $c ,$projectName ) = @_;
-	my $p = $c->session_path()."/$projectName/";
+	my $p = $c->session_path()."$projectName/";
 	mkdir ( $p ) unless ( -d $p );
 	map { mkdir ($p.$_) unless( -d $p.$_) } 'data', 'scripts', 'output';
-	return $c->session_path()."/$projectName/";
+	return $c->session_path()."$projectName/";
 }
 
 __PACKAGE__->meta->make_immutable( inline_constructor => 0 );

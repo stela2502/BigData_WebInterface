@@ -45,6 +45,11 @@ giving a description will create a new project, populate it and return it.
 
 =cut
 
+sub user_has_access {
+	my ( $self, $c, $projectName ) = @_;
+	return $self->{'projects'}->user_has_access($projectName, $c->user() ) ;
+}
+
 sub register_project {
 	my ( $self, $c, $hash ) = @_;
 	my $projectName;
@@ -67,33 +72,42 @@ sub register_project {
 		}
 		
 	}else {
-		if ( $self->{'projects'}->user_has_access($hash->{'name'}, $c->user() ) ){
+		if ( $self->user_has_access($c, $hash->{'name'}) ){
 			$projectName = $hash->{'name'};
 		}
 	}
 	return $self if ( $c->session->{'active_projects'} ->{$projectName} and $c->model('Rinterface') -> is_running( $c->session->{'active_projects'} ->{$projectName}->{'R'}) );
 	$self->{active}->{$c->user()} ||= {};
 	my $server = 
-		  "logfile <- '".$self->path( $c, $projectName)."scripts/".$c->user()."_automatic_commands.R'\n"
-		  . "infile <- '##PATH##/##PORT##.input.R'\n"
-		  . "system( paste('touch', logfile) )\n"
+		  "## the strage var names are to not interfere with user defined variable names\n"
+		  . "LoGfIlE <- '".$self->path( $c, $projectName)."scripts/".$c->user()."_automatic_commands.R'\n"
+		  . "LoCkFiLe <- '##PATH##/##PORT##.input.lock'\n"
+		  . "InFiLe <- '##PATH##/##PORT##.input.R'\n"
+		  . "setwd( '".$self->path( $c, $projectName).'output/'."' )\n"
+		  . "if ( file.exists('.RData')) { load('.RData') }\n"
+		  . "system( paste('touch', LoGfIlE) )\n"
 		  . "server <- function(){\n"
 		  . "  while(TRUE){\n"
-		 . "        if ( file.exists(infile) ) {\n"
-		  . "                while ( file.exists( paste(infile,'log', sep='.' ) ) ) {\n"
+		 . "        if ( file.exists(InFiLe) ) {\n"
+		  . "                while ( file.exists( LoCkFiLe ) ) {\n"
 		  . "                        Sys.sleep( 2 )\n"
 		  . "                }\n"
-		  . "                system( paste('cat', infile, '>>', logfile ))\n"
-		  . "                capture.output(source( infile ), file= logfile, append =T, type='output' )\n"
-		  . "                file.remove( infile )\n"
+		  . "                system( paste('cat', InFiLe, '>>', LoGfIlE ))\n"
+		  . "                tFilE <- file(LoGfIlE,'a')\n"
+		  . "                sink(tFilE, type = 'output')\n"
+		  . "                sink(tFilE, type = 'message')\n"
+		  . "                try ( { source( InFiLe )} )\n"
+		  . "                sink(type = 'output')\n"
+		  . "                sink(type = 'message')\n"
+		  . "                close(tFilE)\n"
+		  . "                file.remove( InFiLe )\n"
 		  . "        }\n"
 		  . "        Sys.sleep(2)\n" . "  }\n" . "}\n"
+		  . "identifyMe <- function () { print ( 'path ".$self->path( $c, $projectName)." on port ##PORT##') }\n"
 		#  . "setwd('".$self->path( $c, $projectName).'output/'."')\n"
 		  . "server()\n";
 		  
 	$self->{active}->{$c->user()}->{$projectName} = $c->model('Rinterface') -> port_4_user( $c->user(), $projectName, $server );
-	
-	$c->model('Rinterface') -> send_2_R ( "setwd( '".$self->path( $c, $projectName).'output/'."' )", $self->{active}->{$c->user()}->{$projectName} );
 	
 	$c->session->{'active_projects'} ||= {};
 	$c->session->{'active_projects'} ->{$projectName} = { 
@@ -108,7 +122,7 @@ sub register_project {
 
 sub send_2_R {
 	my ( $self, $c, $projectName, $cmd ) =@_;
-	my $op = $self->path( $c, $projectName)."outpath/";
+	my $op = $self->path( $c, $projectName)."output/";
 	$cmd =~ s/##OUTPATH##/$op/g;
 	#$cmd =~ s/"/\\"/g;
 	my $port = $c->session->{'active_projects'} ->{$projectName}->{'R'};
@@ -128,10 +142,10 @@ sub send_2_R {
 
 sub path {
 	my ( $self, $c ,$projectName ) = @_;
-	my $p = $c->session_path()."$projectName/";
+	my $p = $c->session_path($projectName);
 	mkdir ( $p ) unless ( -d $p );
 	map { mkdir ($p.$_) unless( -d $p.$_) } 'data', 'scripts', 'output';
-	return $c->session_path()."$projectName/";
+	return $p;
 }
 
 __PACKAGE__->meta->make_immutable( inline_constructor => 0 );

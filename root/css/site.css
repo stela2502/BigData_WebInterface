@@ -3,6 +3,10 @@
   overflow: hidden;
 }
 
+#filebutton{
+	 font-size: 70%;
+}
+
 #tab20100 {
 	width : 20%;
 }

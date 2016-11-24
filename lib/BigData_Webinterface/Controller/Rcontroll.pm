@@ -24,6 +24,9 @@ Catalyst Controller.
 
 sub index : Local : Form {
 	my ( $self, $c, $projectName ) = @_;
+	$self->__check_user($c);
+	$self->__user_has_access( $c, $projectName );
+	
 	unless ( defined $projectName ) {
 		$c->res->redirect( $c->uri_for('/projects/index') );
 		$c->detach();
@@ -51,6 +54,7 @@ sub index : Local : Form {
 			'rows'     => 30,
 			'value'    => '',
 			'required' => 1,
+			'jsclick' =>  "hljs.highlightAuto(this.value)",
 		}
 	);
 	$c->form->submit( ['Send to R'] );
@@ -59,9 +63,18 @@ sub index : Local : Form {
 	}
 
 	if ( $c->form->submitted() && $c->form->validate() ) {
-		my $dataset = $self->__process_returned_form($c);
+		my $dataset = $self->__process_returned_form($c, $projectName);
 		$c->model('Project')->send_2_R( $c, $projectName, $dataset->{'input'} );
 		sleep(3);    ## to allow the R process to work a little
+		if ($c->form->submitted() eq 'Close session') {
+			$c->model('Project')->{''}
+		}
+		$c->res->redirect(
+			$c->uri_for(
+				"/rcontroll/index/$projectName/"
+			)
+		);
+		$c->detach();
 	}
 
 	## so now we should have a (one) woring R interface
@@ -91,8 +104,15 @@ sub index : Local : Form {
 
 	#$c->form->type('TT2');
 	#$c->form->template( $c->config->{'root'} . 'src' . '/form/analysis.tt2' );
+	$self->file_upload($c, $projectName );
+	$c->stash->{'body_extensions'} = 'onload="moveCaretToEnd(document.getElementById(\'rconsole\'))"';
+	$self->Script( $c,
+		  '<script type="text/javascript" src="'
+		  . $c->uri_for('/scripts/highlight.pack.js')
+		  . '"></script>' . "\n" );
+	$c->stash->{'uploadPath'} = "/files/upload/$projectName";
 	$c->stash->{'template'} = 'Rcontroller.tt2';
-
+	$c->form->submit( ['Send to R', 'Close session'] );
 
 }
 

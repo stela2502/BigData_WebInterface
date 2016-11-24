@@ -1,6 +1,7 @@
 package BigData_Webinterface::Controller::Files;
 
 use Moose;
+
 #use HTpcrA::EnableFiles;
 use namespace::autoclean;
 use DateTime::Format::MySQL;
@@ -8,7 +9,7 @@ use JSON;
 use strict;
 use warnings;
 
-#with 'HTpcrA::EnableFiles';
+with 'BigData_Webinterface::controller';
 
 #BEGIN { extends 'HTpcrA::base_db_controler';};
 BEGIN { extends 'Catalyst::Controller'; }
@@ -72,7 +73,6 @@ sub use_example_data : Local : Form {
 	$c->detach();
 }
 
-
 sub download_example_data : Local : Form {
 	my ( $self, $c, @args ) = @_;
 	my $path     = $self->path($c);
@@ -96,7 +96,7 @@ sub update_form {
 	#$self->{'form_array'} = [];
 	$hide_most ||= 0;
 	$c->form->method('post');
-	my $hash = $self->config_file( $c, 'Preprocess.Configs.txt' );
+	my $hash;    # = $self->config_file( $c, 'Preprocess.Configs.txt' );
 	$hash->{'rmGenes'} ||= 'NO';
 	my @genes;
 
@@ -109,179 +109,11 @@ sub update_form {
 			'required' => 0,
 		}
 	);
-	push(
-		@{ $self->{'form_array'} },
-		{
-			'comment'  => 'Upload the PCR results table',
-			'name'     => 'PCRTable2',
-			'type'     => 'file',
-			'required' => 0,
-			'multiple' => 1,
-		}
-	);
-	push(
-		@{ $self->{'form_array'} },
-		{
-			'comment'  => 'Key Word to sort the files',
-			'name'     => 'orderKey',
-			'value'    => $hash->{'orderKey'} || 'Array',
-			'required' => 1,
-		}
-	);
-	push(
-		@{ $self->{'form_array'} },
-		{
-			'comment'  => 'Upload the FACS results table',
-			'name'     => 'facsTable',
-			'type'     => 'file',
-			'required' => 0,
-			'multiple' => 1,
-		}
-	);
-	push(
-		@{ $self->{'form_array'} },
-		{
-			'comment' => 'Normalization method',
-			'name'    => 'normalize2',
-			'value'   => $hash->{'normalize2'},
-			'type'    => 'select',
-			'options' => [
-				'max expression',
-				'median expression',
-				'mean control genes',
-				'quantile',
-				'none'
-			],
-			'value'    => 'none',
-			'required' => 0,
-		}
-	);
-	push(
-		@{ $self->{'form_array'} },
-		{
-			'comment'  => 'Evaluate Pass/Fail information',
-			'name'     => 'use_pass_fail',
-			'options'  => [ 'True', 'False' ],
-			'value'    => $hash->{'use_pass_fail'} || 'True',
-			'required' => 0,
-		}
-	);
-	push(
-		@{ $self->{'form_array'} },
-		{
-			'comment' => 'User defined Grouping',
-			'name'    => 'userGroup',
-			'value' =>
-			  'an integer list of group ids in the same order as the table(s)',
-			'required' => 0,
-		}
-	);
-	push(
-		@{ $self->{'form_array'} },
-		{
-			'comment' => 'Max control genes',
-			'name'    => 'maxGenes',
-			'type'    => 'select',
-			'options' => [ 'any', 'more than 1', 'more than 2', 'all 4' ],
-
-			#	'options'  => [0,1,2,3 ],
-			'required' => 0,
-			'value'    => $hash->{'maxGenes'} || 'any',
-		}
-	);
-	push(
-		@{ $self->{'form_array'} },
-		{
-			'comment'  => 'expression above CT value',
-			'name'     => 'maxCT',
-			'type'     => 'text',
-			'value'    => $hash->{'maxCT'} || 25,
-			'required' => 0,
-		}
-	);
-	push(
-		@{ $self->{'form_array'} },
-		{
-			'comment'  => 'set not expressed genes (Ct=999) to MAX(Ct) +',
-			'name'     => 'nullCT',
-			'type'     => 'text',
-			'value'    => $hash->{'nullCT'} || 1,
-			'required' => 0,
-		}
-	);
-	my $path = $self->path($c);
-	opendir( DIR, $path );
-	my @files = sort grep( !/_Heatmap.png/, grep ( /\.png$/, readdir(DIR) ) );
-	closedir(DIR);
-	my @tmp =
-	  $self->create_selector_table_4_figures( $c, 'mygallery', 'pictures1',
-		'controlG1', @files );
-
-	splice( @tmp, 1, 1 );    ## kick out the select box!
-	$c->form->name('mygallery');
-	my $str;
-
-#$hash->{ 'negContr'} = [$hash->{ 'negContr'}] unless ( ref($hash->{ 'negContr'}) eq "ARRAY" );
-	push(
-		@{ $self->{'form_array'} },
-		{
-			'comment'  => 'Negative control genes',
-			'name'     => 'negContr',
-			'value'    => $hash->{'negContr'},
-			'options'  => $self->{'select_options'},
-			'required' => 0,
-			'multiple' => 1,
-			'jsclick' =>
-'if ( userInformedOnNegControls===0) {alert("WARNING: All cells expressing a negative control gene will be dropped.");userInformedOnNegControls=1;}',
-		}
-	);
-
-	foreach my $i ( 1 .. 4 ) {
-		$str = $tmp[0];
-		$hash->{ 'controlG' . $i } ||= '';
-		if ( $hash->{ 'controlG' . $i } =~ m/.png$/ ) {
-			$str .= "</td>
-</tr>
-<tr>
-<td width='100%'><p align='center'><img src='"
-			  . $hash->{ 'controlG' . $i }
-			  . "', width='100%' id='pictures$i'></td>
-</tr>
-</table>
-";
-		}
-		else {
-			$str .= "</td>
-</tr>
-<tr>
-<td width='100%'><p align='center'><img src='"
-			  . $c->uri_for('/static/images/Empty_selection.png')
-			  . "' width='100%' id='pictures$i'></td>
-</tr>
-</table>
-";
-		}
-
-		$c->stash->{ 'GOI_' . $i } = $str;
-
-		push(
-			@{ $self->{'form_array'} },
-			{
-				'comment'  => 'Positive control gene ' . $i,
-				'name'     => 'controlG' . $i,
-				'value'    => $hash->{ 'controlG' . $i },
-				'options'  => $self->{'select_options'},
-				'required' => 0,
-				'jsclick' =>
-				  "showimage('mygallery', 'pictures$i','controlG$i')",
-			}
-		);
-	}
 
 	foreach ( @{ $self->{'form_array'} } ) {
 		$c->form->field( %{$_} );
 	}
-	$c->form->submit( [ 'Apply', 'Done here -> Analyze' ] );
+	$c->form->submit( ['Upload'] );
 }
 
 sub report_last {
@@ -295,7 +127,7 @@ sub report_last {
 sub control_page : Local : Form {
 	my ( $self, $c, @args ) = @_;
 
-	my $path = $self->check($c,'nothing');
+	my $path = $self->check( $c, 'nothing' );
 
 	opendir( DIR, $path );
 	my @files = sort grep ( /\.png$/, readdir(DIR) );
@@ -360,85 +192,25 @@ sub ajaxuploader : Local : Form {
 }
 
 sub upload : Local : Form {
-	my ( $self, $c, @args ) = @_;
-	my $path = $self->path($c);
+	my ( $self, $c, $projectName, @args ) = @_;
+	my $path = $self->path($c, $projectName);
+	$self->__check_user($c);
+	$self->__user_has_access( $c, $projectName );
+
 	$self->update_form($c);
-	$self->file_upload($c);
+	$self->file_upload($c, $projectName );
 	$c->model('Menu')->Reinit();
 	$c->cookie_check();
 
-
 	if ( $c->form->submitted ) {
-		if (   $c->form->submitted() eq "Apply"
-			|| $c->form->submitted() eq "Upload Data" )
+		if ( $c->form->submitted() )
 		{    ## the second is added using pure HTML in the form definition!
-			my $main_path = $c->session_path();
-			foreach ( "norm_data.RData", "R.error" ) {
-				unlink( $main_path . $_ )
-				  if ( -f $main_path . $_ );
-			}
-			system("rm -Rf $path*");
-			eval { system("rm ../Grouping*") };
+			my $main_path = $c->session_path($projectName);
 
-			my $dataset = $self->__process_returned_form($c);
-			$self->config_file( $c, 'Preprocess.Configs.txt', $dataset );
-			$self->file_upload( $c, $dataset );
-			$self->R_script( $c, $dataset );
-			unless ( -f $c->session_path(). "norm_data.RData" ) {
-				Carp::confess("File ".$c->session_path(). "norm_data.RData". " Not found"  );
-				if ( defined @{ $dataset->{'negControllGenes'} }[0] && length(@{ $dataset->{'negControllGenes'} }[0]) > 0 ) {
-					my $spath = $c->session_path();
-					open( OUT, ">" . $spath . "Error_system_message.txt" );
-					print OUT
-"<h3>The file upload did not produce a usable dataset</h3> 
-You have selected at least one negative control gene which is likely have lead to the dropping of all cells.  
-Please re-upload your files without selecting negative controle gene(s).";
-					close OUT;
-					open( OUT, ">" . $spath . "back_to.txt" );
-					print OUT
-					  '/files/upload/';    ## uri_for call on the error page
-					close(OUT);
-					$c->res->redirect( $c->uri_for("/error/error/") );
-					$c->detach();
-				}
-				elsif ( -f $path . "/R_file_read_error.txt" ) {
-					open( IN, "<" . $path . "/R_file_read_error.txt" );
-					$c->stash->{ERROR} = [<IN>];
-					while (<IN>) {
-						if ( $_ =~ m/file ..\/(.+) not readable / ) {
-							$c->stash->{'message'} .= $_;
-							$self->remove_file_from_cockie( $c, $1 );
-						}
-						$c->stash->{'message'} .= $_;
-					}
-					close(IN);
-				}
-				else {
-					## this does mean, that no file could be uploaded
-					$c->stash->{'ERROR'} =
-					    "Sorry, an error in the file upload occured. "
-					  . "Please check if your files are supported, or try loading each one individually "
-					  . "to identify the problematic file "
-					  . "<a href='#' onclick=\"MyWindow=window.open('"
-					  . $c->uri_for('/help/index/files/upload/PCRTable/')
-					  . "','MyWindow', 'width=500,heig‌​ht=500'); return false;\" >"
-					  . "<img style='border:0px;' src='/static/images/Questions.gif' width='20px'></a>"
-					  . ". <a href='"
-					  . $c->uri_for("/error/error")
-					  . "'>Full error message...</a>";
-					$self->init_file_cookie( $c, 1 );
-					$self->file_upload($c);
-					my $spath = $c->session_path();
-					system( "cp $path/Preprocess.Rout "
-						  . $spath
-						  . "Error_system_message.txt" );
-				}
-			}
+			my $dataset = $self->__process_returned_form($c, $projectName);
+			$self->file_upload( $c, $projectName, $dataset );
+		
 			$self->update_form($c);
-		}
-		elsif ( $c->form->submitted() eq "Done here -> Analyze" ) {
-			$c->res->redirect( $c->uri_for("/analyse/run_first/") );
-			$c->detach();
 		}
 	}
 
@@ -452,8 +224,9 @@ Please re-upload your files without selecting negative controle gene(s).";
 		  . $c->uri_for('/scripts/upload.js')
 		  . '"></script>' );
 
-	$c->form->template( $c->config->{'root'}.'src'. '/form/upload.tt2' );
-
+	$c->form->template( $c->config->{'root'} . 'src' . '/form/upload.tt2' );
+	$c->stash->{'text'} = "Please upload all files you want to use in this project using the form. The files will become accessible in the R controller page.";
+	$c->stash->{'toR'} = "/rcontroll/index/$projectName/";
 	$c->stash->{'template'} = 'file_upload.tt2';
 }
 
@@ -470,61 +243,23 @@ sub remove_file_from_cockie {
 }
 
 sub path {
-	my ( $self, $c ) = @_;
+	my ( $self, $c, $projectName ) = @_;
 
 	#return $self->{'_path_'} if ( $self->{'_path_'} );
-	my $r = $c->session_path() . "preprocess/";
+	my $r = $c->session_path($projectName) . "data/";
 	mkdir("$r") unless ( -d $r );
 
 	#$self->{'_path_'} = $r;
 	return $r;
 }
 
-sub R_script {
-	my ( $self, $c, $dataset ) = @_;
-	my $path = $self->path($c);
-	$dataset->{'controlM'} = [];
-
-	## new R approach in version 0.20
-	## Use pure R
-	#Carp::confess( $dataset->{'controlG1'} );
-	foreach ( 1 .. 4 ) {
-		if ( $dataset->{ 'controlG' . $_ } ) {
-			$dataset->{ 'controlG' . $_ } =~ m/preprocess\/(.+).png/;
-			if ( !$1 eq "" ) {
-				$dataset->{ 'controlG' . $_ } = $1;
-				push( @{ $dataset->{'controlM'} }, $1 );
-			}
-		}
-	}
-	$dataset->{'negControllGenes'} =
-	  [ map { $_ =~ m/preprocess\/(.+).png/; $1; }
-		  @{ $dataset->{'negContr'} } ];
-
-	$dataset->{'maxGenes'} = 0 if ( $dataset->{'maxGenes'} eq "any" );
-	$dataset->{'maxGenes'} = 3 if ( $dataset->{'maxGenes'} eq "all 4" );
-	$dataset->{'maxGenes'} = $1
-	  if ( $dataset->{'maxGenes'} =~ m/more than (\d)/ );
-
-	#Carp::confess ( root->print_perl_var_def( $seesion_hash->{'PCR'} ) );
-	
-	my $script = $c->model('RScript')->create_script($c,'file_load', $dataset);
-	
-	$c->model('RScript')->runScript( $c, $c->session_path(), 'Preprocess.R', $script, 1 );
-	
-	$c->model('scrapbook')->init( $c->scrapbook() )
-	  ->Add("<h3>File Upload</h3>\n<i>options:"
-		  . $self->options_to_HTML_table($dataset)
-		  . "</i>\n" );
-	return 1;
-}
 
 sub index : Local {
 	my ( $self, $c, @filename ) = @_;
 	my $filename = '/' . join( "/", @filename );
 	my $fn       = @filename[ @filename - 1 ];
-	my $allowed  = $c->session_path();
-	
+	my $allowed  = $c->session->{'path'};
+
 	$fn =~ s!//+!/!g;
 	unless ( $filename =~ m/^\/?$allowed/ ) {
 		$c->response->body(
@@ -535,15 +270,15 @@ sub index : Local {
 	open( OUT, "<$filename" )
 	  or Carp::confess(
 "Sorry, but I could not access the file '$filename' on the server!\n$!\n"
-	  );	
-	
+	  );
+
 	while ( defined( my $line = <OUT> ) ) {
 		$c->res->write($line);
 	}
-	close(OUT);	
+	close(OUT);
 	$c->res->header( 'Content-Disposition', qq[attachment; filename="$fn"] );
 	$c->res->content_type('image/svg+xml') if ( $filename =~ m/svg$/ );
-	$c->res->code(204);	
+	$c->res->code(204);
 }
 
 sub message_form {
@@ -627,8 +362,8 @@ sub report_error : Local : Form {
 	my ( $self, $c, @args ) = @_;
 	$c->session_path();
 	$self->message_form($c);
-	$self->check($c, 'nothing');
-	
+	$self->check( $c, 'nothing' );
+
 	$self->{'form_array'} = [];
 	push(
 		@{ $self->{'form_array'} },
@@ -673,16 +408,16 @@ sub report_error : Local : Form {
 }
 
 sub as_zip_file : Local : Form {
-	my ( $self, $c, @args ) = @_;
+	my ( $self, $c, $projectName, @args ) = @_;
 	$self->message_form($c);
-	$self->check($c, 'upload');
+	$self->__check_user($c);
+	$self->__user_has_access( $c, $projectName );
 
 	if ( $c->form->submitted && $c->form->validate ) {
 		my $dataset = $self->__process_returned_form($c);
-		my $path    = $c->session_path();
+		my $path    = $c->session_path($projectName);
 		if ( $dataset->{'text'} =~ m/\w/ ) {
 
-#Carp::confess (  $c->model('MethodsSection') -> html_methods($c, "<h1>User Description:</h1>\n\n".$dataset->{'text'}."\n\n") );
 			open( OUT, ">", $c->session_path() . "MyDescription.html" );
 			print OUT $c->model('MethodsSection')->html_methods( $c,
 				    "<h1>User Description:</h1>\n\n"
@@ -711,7 +446,7 @@ sub as_zip_file : Local : Form {
 		$c->detach();
 	}
 	$c->form->template(
-		$c->config->{'root'}.'src'. '/form/MakeLabBookEntry.tt2' );
+		$c->config->{'root'} . 'src' . '/form/MakeLabBookEntry.tt2' );
 	$c->stash->{'template'} = 'download_all.tt2';
 }
 
@@ -728,7 +463,7 @@ sub session_file {
 	}
 	elsif ( $what eq 'load' ) {
 		open( IN, "<" . $path . ".internals/session.json" )
-		  or Carp::confess( "I can not read from the file '"
+		  or Carp::confess( "I can not read from the file '" 
 			  . $path
 			  . ".internals/session.json'\n$!\n" );
 		my $str = join( "", <IN> );
@@ -742,7 +477,8 @@ sub session_file {
 			}
 		}
 		map {
-			unless ( $_ eq 'path' || $_ =~ m/^__/ ) {
+			unless ( $_ eq 'path' || $_ =~ m/^__/ )
+			{
 				$c->session->{$_} = $session->{$_};
 			}
 		} keys %$session;
@@ -815,8 +551,10 @@ sub start_from_zip_file : Local : Form {
 "cd $path && unzip -o '@{$dataset->{ 'zipfile' }}[0]->{'filename'}'"
 			);
 			$self->session_file( $c, 'load' );
-			my $script = $c->model('RScript')->create_script($c, 'fixPath', {} );
-			$c->model('RScript')->runScript( $c, $path, 'FixPath.R', $script, 1 );
+			my $script =
+			  $c->model('RScript')->create_script( $c, 'fixPath', {} );
+			$c->model('RScript')
+			  ->runScript( $c, $path, 'FixPath.R', $script, 1 );
 			$c->res->redirect( $c->uri_for("/analyse/index/") );
 			$c->detach();
 		}

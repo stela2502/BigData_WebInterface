@@ -1,0 +1,17 @@
+<div id="sidebar">
+
+<b>Uploaded data files:</b>
+<div id="sidebarHeader">Files:</div>
+<div id="sidebarEntry">
+[% IF files %]
+
+	[% FOREACH entry IN files %]
+	 <button id='filebutton' type="button" onclick="typeInTextarea(document.getElementById('input'), '../data/[% entry.filename %]')" >[% entry.filename %]</button> 	
+	[% END %]
+	[% IF files.size == '0' %]
+	none</BR>
+	[% END %]
+[% END %]
+</div>
+
+</div>

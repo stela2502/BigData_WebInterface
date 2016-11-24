@@ -59,7 +59,7 @@ __PACKAGE__->config(
 		'Model::Rinterface' => { 'path' => join("/", @curdir, 'root/' )."tmp"},
 	root => join("/", @curdir, 'root/' ),
     name => 'BigData_Webinterface',
- #   deployed => 1,
+    deployed => 1,
     # Disable deprecated behavior needed by old applications
     disable_component_resolution_regex_fallback => 1,
     enable_catalyst_header => 1, # Send X-Catalyst header
@@ -74,35 +74,26 @@ __PACKAGE__->config(
 __PACKAGE__->setup();
 
 
-
+sub project_path {
+	my ( $c ,$projectName ) = @_;
+	my $p = $c->session_path($projectName);
+	mkdir ( $p ) unless ( -d $p );
+	map { mkdir ($p.$_) unless( -d $p.$_) } 'data', 'scripts', 'output';
+	return $p;
+}
 
 sub session_path {
-	my ($self, $session_id ) = @_;
-	if ( defined $session_id ){
-		return $self->config->{'root'}. "tmp/" . $session_id ."/";
+	my ($self, $projectName ) = @_;
+	if ( defined $projectName ){
+		$self->session->{'path'} = $self->config->{'root'}. "tmp/" . $projectName ."/";
+		unless ( -d $self->session->{'path'} ) {
+			system("mkdir -p $self->session->{'path'}");
+			map { mkdir ($self->session->{'path'}.$_) unless( -d $self->session->{'path'}.$_) } 'data', 'scripts', 'output';
+		}
+		return $self->session->{'path'};
 	}
-	my $path = $self->session->{'path'};
-	
-	if (defined $path){
-		return $path if ( $path =~ m!/tmp/[\w\d]! && -d $path );
-	}
-	my $Root = '';
-	$Root = $self->config->{'root'};
+	Carp::confess ( "Lib change session_path MUST get the projectName!\n");
 
-	#	my $root = "/var/www/html/HTPCR";
-	$session_id = $self->get_session_id();
-	unless ( $session_id = "[w\\d]" ) {
-		$self->res->redirect( $self->uri_for("/") );
-		$self->detach();
-	}
-	$path = $Root . "tmp/";# . $self->get_session_id() . "/";
-	#$path = $Root . "tmp/" . $self->get_session_id() . "/" if ($path =~ m!//$! );
-	unless ( -d $path ) {
-		mkdir($path)
-		  or Carp::confess("I could not create the session path $path\n$!\n");
-	}
-	$self->session->{'path'} = $path;
-	return $path;
 }
 
 sub scrapbook {

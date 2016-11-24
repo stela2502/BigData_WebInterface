@@ -28,7 +28,7 @@ Catalyst Controller.
 
 sub index :Local :Form {
     my ( $self, $c ) = @_;
-
+	$self->__check_user($c);
 	$self->{'form_array'}= [];
 	push(
 		@{ $self->{'form_array'} },

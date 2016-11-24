@@ -15,6 +15,9 @@ requires 'Catalyst::Plugin::Static::Simple';
 requires 'Catalyst::Action::RenderView';
 requires 'Catalyst::ActionRole';
 requires 'Moose';
+requires 'Catalyst::ActionRole::RequireSSL'; 
+requires 'DBI' => 0;
+requires 'DBD::SQLite' => 0;
 requires 'Catalyst::ActionRole::NoSSL';
 requires 'namespace::autoclean';
 requires 'Config::General'; # This should reflect the config file format you've chosen

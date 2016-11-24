@@ -1,0 +1,43 @@
+<td id='tab20100', valign='top'>
+
+</div>
+<div id="sidebar">
+
+[% INCLUDE 'File_area.tt2' %]
+
+[% IF projectName %]
+<p><a href="[% c.uri_for('/files/upload/'projectName) %]" target="_self">Upload more files</a></p>
+[% END %]
+
+[% form.render %]
+
+</div>
+
+[% FOREACH name IN formNames %]
+<p>[% name %]</p>
+[% END %]
+
+<div id='message'> [% message | html %] </div>
+
+
+</td><td id='tab4050'>
+
+	[% IF title %]
+	<h3> [% title %] </h3>
+	[% END %]
+	
+
+	[% IF text %]
+		<p> [% text %] </p>
+	[% END %]
+	
+	<a href="[% c.uri_for( toR ) %]" id='backLink' >Go back to the R session</a>
+	
+   
+
+</table>
+
+</td><td id='tab20100'>
+
+</td>
+

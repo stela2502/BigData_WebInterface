@@ -3,6 +3,13 @@
 </div>
 <div id="sidebar">
 
+[% INCLUDE 'File_area.tt2' %]
+
+[% IF uploadPath %]
+<p><a href="[% c.uri_for(uploadPath) %]" target="_self">Upload more files</a></p>
+[% END %]
+
+
 <p>
 [% outfiles %]
 </p>
@@ -23,7 +30,7 @@
 [% form.render %]
 </td></tr><tr><td>
 
-<textarea rows="30" cols="120" readonly>
+<textarea id="rconsole" rows="30" cols="120" readonly>
 
 [% logfile %]
 

@@ -24,8 +24,11 @@ if (area.addEventListener) {
   });
 }
 
-function typeInTextarea(el, newText) {
-    newText = '"' + newText + '"';
+function typeInTextarea(el, newText, add) {
+    if ( typeof add === "undefined") {
+	add = '"'
+    }
+    newText = add + newText + add;
     var start = el.selectionStart;
     var end = el.selectionEnd;
     var text = el.value;

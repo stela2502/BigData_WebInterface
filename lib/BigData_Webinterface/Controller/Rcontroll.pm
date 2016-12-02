@@ -50,7 +50,7 @@ sub index : Local : Form {
 			'comment'  => 'Script Area',
 			'name'     => 'input',
 			'type'     => 'textarea',
-			'cols'     => 120,
+			'cols'     => 70,
 			'rows'     => 30,
 			'value'    => '',
 			'required' => 1,
@@ -67,7 +67,7 @@ sub index : Local : Form {
 		$c->model('Project')->send_2_R( $c, $projectName, $dataset->{'input'} );
 		sleep(3);    ## to allow the R process to work a little
 		if ($c->form->submitted() eq 'Close session') {
-			$c->model('Project')->{''}
+			$c->model('Project')->{$projectName}-> send_2_R ( $c, $projectName,"q('yes')" );
 		}
 		$c->res->redirect(
 			$c->uri_for(
@@ -85,6 +85,16 @@ sub index : Local : Form {
 		  . "\n$!\n" );
 	$c->stash->{'logfile'} = join( "", <IN> );
 	close(IN);
+	my @packages = $c->stash->{'logfile'} =~ m/library\(([\w\_]+)\)/g;
+	$c->stash->{'Rscriptlets'} = [];
+	my $script = "\n";
+	foreach ( map{ @{ $c->model('ScriptHelper')->scripts($c, $_)} } keys %{ {map{ $_ => 1 } @packages} }  ) {
+		push( @{$c->stash->{'Rscriptlets'}}, $_->{'name'} );
+		$script .= "$_->{'name'} = function $_->{'name'}(){\ntypeInTextarea(document.getElementById('input'), \"$_->{'script'}\" , '')\n}\n";
+	}
+	$self->Script( $c , '<script type="text/javascript">'.$script."</script>\n");
+	
+	#Carp::confess (  root::get_hashEntries_as_string( $c->stash->{'Rscriptlets'} , 3, "This is the packages I got: (").")" );
 	opendir( DIR,
 		$c->session->{'active_projects'}->{$projectName}->{'outpath'} )
 	  or Carp::confess("I can not open the outpath");

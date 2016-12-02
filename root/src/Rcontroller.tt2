@@ -25,12 +25,22 @@
 
 </td><td id='tab4050'>
 
-<table><tr><td>
+<table><tr><td id='tab4050'>
 <h3>The R script area:</h3>
-[% form.render %]
-</td></tr><tr><td>
+<p>Please note, that the automatic print is not captured here! If you want to see the content of a variable you need to enclose the statement in a print()!</p>
 
-<textarea id="rconsole" rows="30" cols="120" readonly>
+[% form.render %]
+
+
+</td><td>
+<h3>R scriptlets:</h3>
+[% FOREACH button IN Rscriptlets %]
+<button id='scriptbutton' type="button" onclick="[% button %]()" >[% button %]</button> 
+[% END %]
+</td></tr><tr><td>
+<textarea id="rconsole" rows="15" cols="120" readonly>
+
+
 
 [% logfile %]
 
@@ -40,7 +50,5 @@
 
 </td><td id='tab20100'>
 
-<p>Here I will present javascript applets that allow a simple submission of R function calls.
-In the future...</p>
 </td>
 

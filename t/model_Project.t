@@ -178,17 +178,22 @@ ok( @{ &is_running(0) } > 2, "server 0 started and running" );
 
 open( IN, "<" . $c->model('Rinterface')->{'path'} . "/server_0.R" );
 $value = [ map { chomp; $_ } <IN> ];
-
+close(IN);
 #print "\$exp = " . root->print_perl_var_def($value) . ";\n";
+print "This is the script:\n".join("\n", @$value ) ."\n";
+
 
 $exp = [
 '## the strage var names are to not interfere with user defined variable names',
 'LoGfIlE <- \'' . $c->session_path('LUNBIO00000000000001') . 'scripts/test-use_automatic_commands.R\'',
 'LoCkFiLe <- \'' . $c->model('Rinterface')->{'path'} . '/0.input.lock\'',
 'InFiLe <- \'' . $c->model('Rinterface')->{'path'}  . '/0.input.R\'',
+
  "setwd( '".$c->session_path('LUNBIO00000000000001').'output/'."' )",
+'system( paste(\'touch\', LoGfIlE) )',
+'identifyMe <- function () { print ( \'path ' . $c->session_path('LUNBIO00000000000001') . ' on port 0\') }',
  "if ( file.exists('.RData')) { load('.RData') }",
-	'system( paste(\'touch\', LoGfIlE) )',
+ 
 	'server <- function(){',
 	'  while(TRUE){',
 	'        if ( file.exists(InFiLe) ) {',
@@ -208,7 +213,6 @@ $exp = [
 	'        Sys.sleep(2)',
 	'  }',
 	'}',
-'identifyMe <- function () { print ( \'path ' . $c->session_path('LUNBIO00000000000001') . ' on port 0\') }',
 	'server()'
 ];
 
@@ -235,6 +239,9 @@ is_deeply( $value, $exp, "R input file as expected" );
 close(IN);
 
 sleep(5);
+
+ok( @{ &is_running(0) } > 2, "server 0 is still running" );
+
 
 ok(
 	-f $c->session_path("LUNBIO00000000000001") . "output/test.png",
@@ -299,7 +306,7 @@ sub is_running {
 
 sub file_2_value {
 	my ($file) = @_;
-	open( IN, "<" . $file ) or die $!;
+	open( IN, "<" . $file ) or die "I could not open the file '$file'\n$!\n";
 	$value = [ map { chomp; $_ } <IN> ];
 	close(IN);
 }

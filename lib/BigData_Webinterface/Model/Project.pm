@@ -83,27 +83,33 @@ sub register_project {
 		  . "LoGfIlE <- '".$self->path( $c, $projectName)."scripts/".$c->user()."_automatic_commands.R'\n"
 		  . "LoCkFiLe <- '##PATH##/##PORT##.input.lock'\n"
 		  . "InFiLe <- '##PATH##/##PORT##.input.R'\n"
+		  
 		  . "setwd( '".$self->path( $c, $projectName).'output/'."' )\n"
-		  . "if ( file.exists('.RData')) { load('.RData') }\n"
 		  . "system( paste('touch', LoGfIlE) )\n"
+		  . "identifyMe <- function () { print ( 'path ".$self->path( $c, $projectName)." on port ##PORT##') }\n"
+		  . "if ( file.exists('.RData')) { load('.RData') }\n"
+		  
 		  . "server <- function(){\n"
 		  . "  while(TRUE){\n"
 		 . "        if ( file.exists(InFiLe) ) {\n"
 		  . "                while ( file.exists( LoCkFiLe ) ) {\n"
 		  . "                        Sys.sleep( 2 )\n"
 		  . "                }\n"
+		  # redirect message and output to the LoGfIlE
 		  . "                system( paste('cat', InFiLe, '>>', LoGfIlE ))\n"
 		  . "                tFilE <- file(LoGfIlE,'a')\n"
 		  . "                sink(tFilE, type = 'output')\n"
 		  . "                sink(tFilE, type = 'message')\n"
+		  # run the file
 		  . "                try ( { source( InFiLe )} )\n"
+		  # close the redirect
 		  . "                sink(type = 'output')\n"
 		  . "                sink(type = 'message')\n"
 		  . "                close(tFilE)\n"
+		  # remove the InFiLe to allow a new command sent from the web server
 		  . "                file.remove( InFiLe )\n"
 		  . "        }\n"
 		  . "        Sys.sleep(2)\n" . "  }\n" . "}\n"
-		  . "identifyMe <- function () { print ( 'path ".$self->path( $c, $projectName)." on port ##PORT##') }\n"
 		#  . "setwd('".$self->path( $c, $projectName).'output/'."')\n"
 		  . "server()\n";
 		  

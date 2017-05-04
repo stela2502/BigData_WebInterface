@@ -1,0 +1,7 @@
+"your new object" <- NGSexpressionSet( 
+	"data table OBJECT data frame",
+	"sample table OBJECT data frame",
+	name="you object name",
+ 	namecol="the column in the samples table that matches the columns in the data",
+ 	namerow= "the column in the data table that should be used as rownames for the data object"
+ )
